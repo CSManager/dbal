@@ -62,12 +62,14 @@ class Comparator
 
         foreach ( $toSchema->getTables() as $table ) {
             $tableName = $table->getShortestName($toSchema->getName());
-            if ( ! $fromSchema->hasTable($tableName)) {
-                $diff->newTables[$tableName] = $toSchema->getTable($tableName);
-            } else {
-                $tableDifferences = $this->diffTable($fromSchema->getTable($tableName), $toSchema->getTable($tableName));
-                if ($tableDifferences !== false) {
-                    $diff->changedTables[$tableName] = $tableDifferences;
+            if (!$table->isInDefaultNamespace('csm')) {
+                if ( ! $fromSchema->hasTable($tableName)) {
+                    $diff->newTables[$tableName] = $toSchema->getTable($tableName);
+                } else {
+                    $tableDifferences = $this->diffTable($fromSchema->getTable($tableName), $toSchema->getTable($tableName));
+                    if ($tableDifferences !== false) {
+                        $diff->changedTables[$tableName] = $tableDifferences;
+                    }
                 }
             }
         }
@@ -77,7 +79,7 @@ class Comparator
             $tableName = $table->getShortestName($fromSchema->getName());
 
             $table = $fromSchema->getTable($tableName);
-            if ( ! $toSchema->hasTable($tableName) ) {
+            if ( ! $toSchema->hasTable($tableName) && !$table->isInDefaultNamespace('csm')) {
                 $diff->removedTables[$tableName] = $table;
             }
 
@@ -111,11 +113,14 @@ class Comparator
 
         foreach ($toSchema->getSequences() as $sequence) {
             $sequenceName = $sequence->getShortestName($toSchema->getName());
-            if ( ! $fromSchema->hasSequence($sequenceName)) {
-                $diff->newSequences[] = $sequence;
-            } else {
-                if ($this->diffSequence($sequence, $fromSchema->getSequence($sequenceName))) {
-                    $diff->changedSequences[] = $toSchema->getSequence($sequenceName);
+            
+            if (!$sequence->isInDefaultNamespace('csm')) {
+                if ( ! $fromSchema->hasSequence($sequenceName)) {
+                    $diff->newSequences[] = $sequence;
+                } else {
+                    if ($this->diffSequence($sequence, $fromSchema->getSequence($sequenceName))) {
+                        $diff->changedSequences[] = $toSchema->getSequence($sequenceName);
+                    }
                 }
             }
         }
@@ -127,7 +132,7 @@ class Comparator
 
             $sequenceName = $sequence->getShortestName($fromSchema->getName());
 
-            if ( ! $toSchema->hasSequence($sequenceName)) {
+            if ( ! $toSchema->hasSequence($sequenceName) && !$sequence->isInDefaultNamespace('csm')) {
                 $diff->removedSequences[] = $sequence;
             }
         }
